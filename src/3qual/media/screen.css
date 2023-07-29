@@ -181,6 +181,9 @@ div.bottomLeftButtonBar {
 	bottom: 5px;
 	left: 5px
 }
+span.mistake {
+	text-color: brown;
+}
 span.versionSpan {
 	visibility: visible
 }
