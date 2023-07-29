@@ -189,8 +189,9 @@ span.versionSpan {
 }
 
 button.playNow {
-    background-color: yellow;
-    font-size: 30pt;
-    border-radius: 10px;
-    color: purple;
+  background-color: yellow;
+  font-size: 30pt;
+  border-radius: 10px;
+  color: purple;
+  box-shadow:5px 5px 5px 0px #6D4A89
 }
