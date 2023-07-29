@@ -181,3 +181,6 @@ div.bottomLeftButtonBar {
 	bottom: 5px;
 	left: 5px
 }
+span.versionSpan {
+	visibility: visible
+}
