@@ -1012,7 +1012,7 @@ var Game = {
 		} else {
 			if (userClicked) {
 				notify("Not finished yet!");
-				Game.incrementIncorrectFinished;
+				Game.incrementIncorrectFinished();
 			}
 		}
 	},
