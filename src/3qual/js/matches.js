@@ -694,6 +694,8 @@ var Deck = {
 
     // Wait a moment for previous touch on old card to (maybe) finish,
     // before listening for touch on new card.
+    card.removeEventListener("touchstart");
+    card.removeEventListener("click");
     window.setTimeout(function() {
 		  card.addEventListener("touchstart", function() {
 	  		card.touched = true;
