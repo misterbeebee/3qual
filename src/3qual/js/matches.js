@@ -48,8 +48,8 @@ var UIConfig = {
 	MATCHED_SET_COLOR: "green",
 	CARD_DEAL_DELAY: 150,
 	SET_CLEAR_REDEAL_DELAY: 500,
-  // Delay before a new card can be touched -- prevents lingering touch from previous card in same spot.
-  NEW_CARD_TOUCH_DELAY: 50,
+	// Delay before a new card can be touched -- prevents lingering touch from previous card in same spot.
+	NEW_CARD_TOUCH_DELAY: 200,
 	STANDARD_NOTIFICATION_TIMEOUT: 2000,
 	INCORRECT_SELECTION_FLASH_TIME: 500,
 	CORRECT_SELECTION_CLEAR_DELAY: 500,
