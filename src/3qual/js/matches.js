@@ -178,7 +178,7 @@ function cardTouched() {
 	  	  }
 function cardClicked() {
 			  if (!this.touched) {
-				  Card.clicked(card);
+				  Card.clicked(this);
 			  } else {
 			  	this.touched = false;
 			  }
