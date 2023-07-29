@@ -48,6 +48,8 @@ var UIConfig = {
 	MATCHED_SET_COLOR: "green",
 	CARD_DEAL_DELAY: 150,
 	SET_CLEAR_REDEAL_DELAY: 500,
+  // Delay before a new card can be touched -- prevents lingering touch from previous card in same spot.
+  NEW_CARD_TOUCH_DELAY: 50,
 	STANDARD_NOTIFICATION_TIMEOUT: 2000,
 	INCORRECT_SELECTION_FLASH_TIME: 500,
 	CORRECT_SELECTION_CLEAR_DELAY: 500,
@@ -364,18 +366,7 @@ var Card = {
 			faceSpec[quale] = ((card.cardId / Math.pow(QUALE_VALS, quale)) | 0) % QUALE_VALS;
 			card.faceSpec = faceSpec;
 		});
-		card.signature = Card.computeSignature(card);
-		card.addEventListener("touchstart", function() {
-			card.touched = true;
-			Card.clicked(card);
-		}, true);
-		card.addEventListener("click", function() {
-			if (!card.touched) {
-				Card.clicked(card);
-			} else {
-				card.touched = false;
-			}
-		}, true);
+		card.signature = Card.computeSignature(card);    
 		card.selected = false;
 		card.className = "card";
 		$(card).css("margin", "0px 0px 0px 0px");
@@ -700,10 +691,28 @@ var Deck = {
 		if (canHighlightNewCard) {
 			Card.updateStyleForGentleHint(card);
 		}
+
+    // Wait a moment for previous touch on old card to (maybe) finish,
+    // before listening for touch on new card.
+    window.setTimeout(function() {
+		  card.addEventListener("touchstart", function() {
+	  		card.touched = true;
+	  		Card.clicked(card);
+	  	}, true);
+		  card.addEventListener("click", function() {
+			  if (!card.touched) {
+				  Card.clicked(card);
+			  } else {
+			  	card.touched = false;
+			  }
+		  }, true);
+    }, UIConfig.NEW_CARD_TOUCH_DELAY);
+    
 		Deck.deckPlace++;
 		Deck.updateDeckCounter();
 		return true;
 	},
+  
 	dealCards: function(cells, numCards, callback) {
 		console.log("Dealing " + numCards + " into " + cells.length + " cells");
 		if (cells.length <= numCards) {
