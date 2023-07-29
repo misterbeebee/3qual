@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+
+	<head>
+		<!-- 
+		Set target density. Since we have pixel-perfect sprites, we have  stylesheets that compute pixel-perfect layout, so disregard device dpi
+		 This approach assumes that all devices with similar pixel-counts have similar dpi (not a terrible assumption)
+		 and that each stylesheet zooms up controls appropriately (make buttons bigger on high-pixel devices.
+		-->
+	<!--	<meta name="viewport" content="target-densitydpi=device-dpi" /> -->
+
+		<!-- import these first, so they can be overridden by device-specific sheets -->
+		<link media="screen" href="3qual/media/iphone-ui.css" type="text/css" rel="stylesheet" />
+		<link media="screen" href="3qual/media/screen.css" type="text/css" rel="stylesheet" />
+	
+	        <!-- iphone, portrait -->
+			        <link media="only screen"
+					            href="3qual/media/320x480.css" type="text/css"
+								rel="stylesheet" />
+
+
+
+
+		<script src="3qual/js/phonegap.js"></script>
+    
+		<script src="3qual/js/sprintf.js"></script>
+		<script src="3qual/js/jquery.js"></script> <!-- OO-compatible variant of jquery -->
+		<script src="3qual/js/jquery-ui-personalized-1.5.3.js"></script>
+		<script src="3qual/js/jquery.sparkline-1.5.1.js"></script>
+
+		<script src="3qual/js/stdlib.js"></script>	
+		<script src="3qual/js/webintent.js"></script>
+		
+		<title>3qual</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="minimum-scale=1.0, width=device-width, maximum-scale=1.1, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="YES">
+	</head>
+
+	<body onload="main();" style="padding:0">
+		
+	<!-- MAIN PAGE -->
+	<div id=main class="page" ><!-- This page is visible at start -->
+	
+		<!-- Row: Performance stats -->
+
+		<!--add side margins, to make stats narrower than card-table. 5px bottom-margin for spacer between this and next div --> 
+		<ul id="performance" class=data >
+			<li class=nopadding>
+			<table border=0 style="text-align:center">
+				<tr><td width="95px"><p style="text-align:center" id=totalTime>Total: <span id=totalTimeValue>0:00</span></p></td>
+					<td width="95px"><p style="text-align:center" id=lastTime>Last: <span id=lastTimeValue>----</span></p></td>
+					<td width="95px"><p style="text-align:center" id=score>Score: <span id=scoreValue>0</span></p></td>
+				</tr>
+			</table>
+		</li></ul>
+		
+			
+		<!-- Row: Main play area-->		
+		<div id="boardTrayDiv"> <!-- This div lets us position the tray -->
+			<ul id='boardTray' class=data>
+				<li class=nopadding>			
+						<div align="center" id="board">
+						<span style="font-size:20px; display:block" id="stallText"><br/><br/>Get ready to play </br/> 3qual! </br/> </br/> Shuffling deck...</span></div>
+				</li>
+			</ul>
+		</div>
+					
+		<!-- Row:  Card counters-->
+								<form id = seedForm action='3qual.html' onsubmit="seedChanged(); return false;" style="display:none; position: absolute; bottom: 100px">
+								<label id = seedLabel></label>
+								<textarea id=seed name=seed rows=4 cols=30 style="color: blue" 
+				 onfocus="this.value=''" onchange="seedChanged" >
+				</textarea>
+				 <br/>
+				 <input type=submit name = "Shuffle and Deal!" value="Shuffle cards and start game!"></input></form>
+	
+	
+		<!-- add side margins, to make stats narrower than card-table. 5px bottom-margin for spacer between this and next div --> 
+		<ul class=data id="counters" class=data>
+		
+			<li class=nopadding>
+			<table style="min-width:250px" border=0 width="100%" >
+				<tr>
+					<td width="50%">
+					<div style="text-align:left">
+						<span id="deckCounter">Deck: <span id="deckCounterValue">&nbsp;</span>&nbsp;<span id='deckCounterSparkline'></span></span>
+					</div>
+					</td>
+					<td width="50%">
+					<div style="text-align:right">
+						<span id="setCounter"><span id='setCounterSparkline'></span>&nbsp;<span id="setCounterValue">&nbsp;</span> Set<span id ='setCounterPluralization'></span> </span>
+					</div>
+					</td>
+				</tr>
+			</table>
+			</li>
+		</ul>
+
+
+		<!-- gameplay buttons on left -->
+		<div class="bottomLeftButtonBar">		
+			<span style="float:left" class="buttonSpan" id="resetSpan"><input style="" type="button" class="button" id="endGame" value="End">&nbsp;</span>
+			<span style="float:left" class="buttonSpan" id="dealMoreSpan"><input type="button" class="button" id="dealMore" value="Deal">&nbsp;</span>
+			<span style="float:left" class="buttonSpan" id="hintSpan"><input type="button" class="button" id="hint" value="Hint">&nbsp;</span>	
+		</div>
+
+		<!-- non-play buttons on right -->
+		<div class="bottomRightButtonBar">
+			<span style="float:right" class="buttonSpan" id="gotoPrefsSpan"><input type="button" class="button" id="gotoPreferences" value="Prefs" onClick="togglePreferencesFromMain();"></span>
+			<span style="float:right" class="buttonSpan" id="helpSpan"><input type="button" class="button" id="help" value="Help"></span>
+		</div>
+	
+		<!-- This notification div will get positioned in an absolute position on screen -->
+		<div align="center" id="notification" class="notification">
+			<ul id =notificationUl class = "data">
+				<li class = lesspadding>
+					<span class='notificationMessage'>&nbsp;</span>
+				</li>
+			</ul>
+		</div>
+
+			
+	</div>
+	
+	<!-- HELP PAGE -->
+
+	  <div align=center id="helpText" class="page">
+
+			<ul class="data" align=left><li class=lesspadding><p>
+			Each card's picture has <span class=qualinesFree>three</span><span class=qualines4D>four</span> <strong>aspects</strong>:
+
+			<table>
+				<tr>
+					<td><span class=helpCell>
+						shape: <span class=triangle>&#x25b4;</span>
+							<span class=square>&#x25a0;</span>
+							<span class=circle>&#x25cf;</span>	
+								&nbsp; &nbsp; 
+					</span></td>
+					<td><span class=helpCell>
+						count: <span class=circle>&#x25cf;&nbsp;&#x25cf;&#x25cf;&nbsp;&#x25cf;&#x25cf;&#x25cf;</span>
+					</span></td>
+				</tr>
+				<tr>
+					<td><span class=helpCell>color: 
+						<span class="color1"><span class=circle>&#x25cf;</span></span> 
+						<span class="color2"><span class=circle>&#x25cf;</span></span> 
+						<span  class="color3"><span class=circle>&#x25cf;</span></span>  &nbsp; &nbsp; 
+					</span></td>
+					<td><span class=helpCell>
+						<span class=qualines4D>fill: &#x25b5;&#x25a1;&#x25cb;, &#x25ec;&#x25a3;&#x25cd;, &#x25b4;&#x25a0;&#x25cf;
+					</span></td>
+				</tr>
+			</table>
+			
+			<p>A <strong>matching set</strong> is a set of 3 cards where each aspect is the same or all different across all 3 cards.
+			For example:<br/>
+			<span class="color2"><span class=triangle>&#x25b4;</span></span>,<span class="color2"><span class=square>&#x25a0;</span></span>,<span class="color2"><span class=circle>&#x25cf;</span></span>
+			<strong>is</strong>: count, color<span class=qualines4D>, fill</span> match; shape differs <br/>
+			<span class=color1><span class=triangle>&#x25b4;</span></span>,<span class="color1"><span class=square>&#x25a0;</span></span>,<span class="color1"><span class=square>&#x25a0;</span></span>
+			<strong>is not</strong>: only 2, not 3 different shapes<br/>
+			<br/>			
+			<strong>Play</strong>:
+			A game starts with <span id=standardCards><span class=qualines4D>12</span><span class=qualinesFree>9</span></span> from the deck of <span id=deckSize><span class="qualinesFree">27</span><span class="qualines4D">81</span>.
+			When you see matching a set, tap the 3 cards. New cards from the deck will replace them.
+			Clear the deck to win! If you get stuck, tap <input type="button" class="inlineButton" id="hintHelp" value="Hint"> .<br/>
+			Tap <input type="button" class="inlineButton" id="dealMoreHelp" value="Deal"> to deal more cards if there is no matching set.<br/>
+		</p></li></ul>				
+		<div class="bottomLeftButtonBar">
+			<span class="buttonSpan" style="float:left"><input type="button" class="button" id="gotoPreferences" value="Preferences..." onClick="togglePreferencesFromHelp();"></span>
+		</div>
+		<div class="bottomRightButtonBar">
+			<span class="buttonSpan" style="float:left"><input type="button" class="button" id="exitHelp" value="Play the Game!" onClick="toggleMainFromHelp();"></span>
+		</div>
+	</div>
+	
+	<!-- PREFERENCES PAGE -->
+	<div id=preferences align=left class="page">
+	<h2>Preferences</h2>
+	<ul class=data>
+	<li>	
+	
+	Game Rules:
+	
+			<br/><label for="onlyDealWhenNecessary"><input type=checkbox name="onlyDealWhenNecessary" id="onlyDealWhenNecessary"  checked=true/> 
+				Deal only if strictly needed.</label>
+			<br/><label for="cardDealDelay"><input type=checkbox name="cardDealDelay" id="cardDealDelay"  checked=true/> 
+				Delay briefly while dealing cards.</label>
+			<br/><label for="autoEndGame"><input type=checkbox name="autoEndGame" id="autoEndGame"  checked=false/> 
+				Auto-detect end of game.</label>			
+			<br/><label for="highlightNewCards"><input type=checkbox name="highlightNewCards" id="highlightNewCards"  checked=false/> 
+				 Decorate newly dealt cards.</label>		
+			<br/><label for="useSeedCode"><input type=checkbox name="useSeedCode" id="useSeedCode"  checked=false/> 
+				 Use seed code to fix shuffle.</label>			
+		
+			<br/><label for="useColorQuale"><input type=checkbox name="useColorQuale" id="useColorQuale" checked=true/>
+				Use 'color' aspect:
+				<span class="color1"><span class=circle>&#x25cf;</span></span>
+				<span class="color2"><span class=circle>&#x25cf;</span></span>
+				<span class="color3"><span class=circle>&#x25cf;</span></span>
+			</label>
+			
+			<br/>
+							<span class=qualines4D style="font-size:13px">
+<label for="useFillQuale">
+				<input type=checkbox name="useFillQuale" id="useFillQuale" checked=true>
+				Use 'fill' aspect:
+				<span class=triangle>&#x25b5;</span><span class=square>&#x25a1;</span><span class=circle>&#x25cb;</span>,
+				<span class=triangle-semi>&#x25ec;</span><span class=square-semi>&#x25a3;</span><span class=circle-semi>&#x25cd;</span>,
+			 <span class=triangle>&#x25b4;</span><span class=square>&#x25a0;</span><span class=circle>&#x25cf;</span>
+			 	
+			</label>
+</span>
+
+			<br/><br/>
+
+			Mode:<br/>
+			<input type=button class="inlineButton" value="Fun" onclick="setRecreationalSettings()";>
+			<input type=button class="inlineButton" value="Training" onclick="setTrainingSettings();">
+			<input type=button class="inlineButton" value="Competition" onclick="setCompetitionSettings()";>
+			<input type=button class="inlineButton" value="Kids" onclick="setKidsSettings()";>
+	
+		</li>
+	</ul>
+	
+		<ul class=data >
+			<li class=lesspadding >	
+				Some changes will apply at next new game.</li>
+	</ul>
+			<div class="bottomLeftButtonBar">
+				<span class="buttonSpan" style="float:left;"><input type="button" class="button" id="exitPreferences" value="Play Game" onClick="toggleMainFromPreferences();">&nbsp;</span>
+				<span class="buttonSpan" style="float:left;"><input type="button" class="button" id="newGame" value="New Game" onClick="toggleMainFromPreferences(); Game.resetGame(theBoard)">&nbsp;</span>
+			</div>
+			<div class="bottomRightButtonBar">
+				<span class="buttonSpan" style="float:right" id="helpDiv"><input type="button" class="button" id="help" value="Help" onClick="toggleHelpFromPreferences();"></span>
+			</div>
+	</div>
+	
+	<!-- STATS PAGE -->
+	<div id=stats align=left class="page" >	
+		<h2 id=statsHeader>Game Stats</h2>
+
+		<ul class=data>
+		<li><p id="statsContent"></p><br/>
+			<form id="email_score_mailto_form" method="post" action="3qual.html" enctype="text/plain">
+				<p>		
+					<input id="email_body" type="hidden" name="body" value=""/>	
+					<input type="button"  class="button"  name="send" value="Send your score to a friend!"/>		
+				</p>
+			</form>
+		</li>
+		<li>
+			<form id="" method="get" action="http://market.android.com/search" enctype="text/plain">
+				<p>		
+					<input type="hidden" name="q" value="pascalcula"/>	
+					<input type="hidden" name="so" value="1"/>
+					<input type="hidden" name="c" value="apps"/>
+					
+					<input type="submit"  class="button"  name="send" value="Rate this app"/>		
+				</p>
+			</form>
+			</li>
+			<li><p>
+				Send us a note: <a href ="mailto:3qual@pascalcula.com?subject=I%20just%20played%203qual!%14&body=Hi!">3qual@pascalcula.com</a>
+			</p></li>
+			</ul>
+		
+		<div class="bottomLeftButtonBar">
+			<span class="buttonSpan" style="float:left;"><input type="button" class="button" value="Start a New Game" id="startNewGame" onclick="toggleMainFromStats(); Game.resetGame(theBoard)"/></span>
+		</div>
+		<div class="bottomRightButtonBar">
+			<span class="buttonSpan" style="float:right;"><input type="button" class="button" value="Prefs" id="prefs" onclick="togglePreferencesFromStats();"/></span>
+		</div>
+	</div>
+	
+</body>
+
+		<script src="3qual/js/matches.js"></script>
+</html>
