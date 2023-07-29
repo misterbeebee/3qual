@@ -1062,15 +1062,18 @@ var Game = {
 		if (Game.hints > 0) {
 			append(msg, "Hints: " + Game.hints);
 		}
-		if (Game.incorrectQualines > 0) {
-			append(msg, "False-Matches: " + Game.incorrectQualines);
-		}
-		if (Game.incorrectFinished > 0) {
-			append(msg, "False-Finishes: " + Game.incorrectFinished);
-		}
-		if (Game.incorrectDealMore > 0) {
-			append(msg, "Extra Deals: " + Game.incorrectDealMore);
-		}
+		var mistakes = [
+			["False Matches", Game.incorrectQualines],
+			["False Finishes", Game.incorrectFinished],
+      ["Extra Deals", Game.incorrectDealMore]
+		]
+		mistakes.forEach(function(mistake){
+		  label = mistake[0];
+		  count = mistake[1];
+		  if (count > 0) {
+		  	append(msg, "<span class='mistake'>" + label + ": " + count + "</span>");
+		  }
+		})
 		var qualine = Game.solveTimes.qualine;
 		if (qualine.length > 0) {
 			append(msg, "Matched sets found: " + qualine.length);
