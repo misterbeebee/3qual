@@ -1068,8 +1068,8 @@ var Game = {
       ["Extra Deals", Game.incorrectDealMore]
 		]
 		mistakes.forEach(function(mistake){
-		  label = mistake[0];
-		  count = mistake[1];
+		  var label = mistake[0];
+		  var count = mistake[1];
 		  if (count > 0) {
 		  	append(msg, "<span class='mistake'>" + label + ": " + count + "</span>");
 		  }
