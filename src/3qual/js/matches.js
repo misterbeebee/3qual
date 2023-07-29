@@ -905,11 +905,11 @@ var Game = {
 		Game.updateScoreDisplay();
 	},
 	incrementIncorrectQualines: function() {
-		Game.incorrectDealMore++;
+		Game.incorrectQualines++;
 		Game.updateScoreDisplay();
 	},
 	incrementIncorrectFinished: function() {
-		Game.incorrectDealMore++;
+		Game.incorrectFinished++;
 		Game.updateScoreDisplay();
 	},
 	incrementIncorrectDealMore: function() {
@@ -1063,7 +1063,7 @@ var Game = {
 			append(msg, "Hints: " + Game.hints);
 		}
 		if (Game.incorrectQualines > 0) {
-			append(msg, "False-Sets: " + Game.incorrectQualines);
+			append(msg, "False-Matches: " + Game.incorrectQualines);
 		}
 		if (Game.incorrectFinished > 0) {
 			append(msg, "False-Finishes: " + Game.incorrectFinished);
