@@ -185,5 +185,5 @@ span.mistake {
 	text-color: brown;
 }
 span.versionSpan {
-	visibility: visible
+	visibility: hidden;
 }
