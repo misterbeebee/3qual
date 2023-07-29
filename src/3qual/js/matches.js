@@ -687,20 +687,16 @@ var Deck = {
 		}
 		var card = Deck.deck[Deck.deckPlace];
 		card.setAttribute("onBoard", true);
-		$(cell).append(card);
-		if (canHighlightNewCard) {
-			Card.updateStyleForGentleHint(card);
-		}
-
-    // Wait a moment for previous touch on old card to (maybe) finish,
-    // before listening for touch on new card.
-    card.removeEventListener("touchstart");
-    card.removeEventListener("click");
-    window.setTimeout(function() {
+		
+		// Wait a moment for previous touch on old card to (maybe) finish,
+		// before listening for touch on new card.
+		card.removeEventListener("touchstart");
+		card.removeEventListener("click");
+		window.setTimeout(function() {
 		  card.addEventListener("touchstart", function() {
 	  		card.touched = true;
 	  		Card.clicked(card);
-	  	}, true);
+	  	  }, true);
 		  card.addEventListener("click", function() {
 			  if (!card.touched) {
 				  Card.clicked(card);
@@ -708,8 +704,12 @@ var Deck = {
 			  	card.touched = false;
 			  }
 		  }, true);
-    }, UIConfig.NEW_CARD_TOUCH_DELAY);
-    
+		}, UIConfig.NEW_CARD_TOUCH_DELAY);
+		
+		$(cell).append(card);
+		if (canHighlightNewCard) {
+			Card.updateStyleForGentleHint(card);
+		}
 		Deck.deckPlace++;
 		Deck.updateDeckCounter();
 		return true;
