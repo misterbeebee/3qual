@@ -170,6 +170,20 @@ function notifyTop(msg, timeout) {
 function notify(msg, timeout) {
 	notifyCore("notification", msg, timeout);
 }
+
+			
+function cardTouched() {
+	  		this.touched = true;
+	  		Card.clicked(this);
+	  	  }
+function cardClicked() {
+			  if (!this.touched) {
+				  Card.clicked(card);
+			  } else {
+			  	this.touched = false;
+			  }
+		  }
+
 var Board = {
 	standardRows: function() {
 		return DEBUG_TEST_DECK ? DEBUG_ALL_CARDS_ROWS : Deck.quales;
@@ -690,20 +704,11 @@ var Deck = {
 		
 		// Wait a moment for previous touch on old card to (maybe) finish,
 		// before listening for touch on new card.
-		card.removeEventListener("touchstart");
-		card.removeEventListener("click");
+		card.removeEventListener("touchstart", cardTouched);
+		card.removeEventListener("click", cardClicked);
 		window.setTimeout(function() {
-		  card.addEventListener("touchstart", function() {
-	  		card.touched = true;
-	  		Card.clicked(card);
-	  	  }, true);
-		  card.addEventListener("click", function() {
-			  if (!card.touched) {
-				  Card.clicked(card);
-			  } else {
-			  	card.touched = false;
-			  }
-		  }, true);
+		  card.addEventListener("touchstart", cardTouched, true);
+		  card.addEventListener("click", cardClicked, true);	
 		}, UIConfig.NEW_CARD_TOUCH_DELAY);
 		
 		$(cell).append(card);
