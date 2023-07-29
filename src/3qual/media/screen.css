@@ -187,3 +187,10 @@ span.mistake {
 span.versionSpan {
 	visibility: hidden;
 }
+
+button.playNow {
+    background-color: yellow;
+    font-size: 30pt;
+    border-radius: 10px;
+    color: purple;
+}
