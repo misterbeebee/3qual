@@ -1,1 +1,20 @@
-ul#boardTray{padding:0;margin:0;background:transparent;border:0 solid #b4b4b4}body{min-height:388px;max-height:388px}div.bottomRightButtonBar{position:absolute;bottom:-45px;right:5px}div.bottomLeftButtonBar{position:absolute;bottom:-45px;left:5px}
+ul#boardTray {
+	padding: 0;
+	margin: 0;
+	background: transparent;
+	border: 0 solid #b4b4b4
+}
+body {
+	min-height: 388px;
+	max-height: 388px
+}
+div.bottomRightButtonBar {
+	position: absolute;
+	bottom: -45px;
+	right: 5px
+}
+div.bottomLeftButtonBar {
+	position: absolute;
+	bottom: -45px;
+	left: 5px
+}
