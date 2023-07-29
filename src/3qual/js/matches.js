@@ -1020,9 +1020,9 @@ var Game = {
 		}
 		if (gameOver) {
 			if (userClicked || Rules.autoEndGame() || (Board.nonEmptyCells(theBoard).length === 0)) {
-				if (userClicked && (Deck.cardsLeft() > 0)) {
-					Game.recordSolutionEvent("no-qualine");
-				}
+				if (userClicked) {
+					Game.incrementCorrectDealMore();
+			        }
 				Game.endGame(true);
 			}
 		} else {
