@@ -2,13 +2,13 @@
 	-webkit-tap-highlight-color: rgba(0,0,0,0)
 }
 span.qualinesFree {
-	display: inline
+	display: none
+}
+div.qualinesFree {
+	display: none
 }
 span.qualines4D {
 	display: inline
-}
-div.qualinesFree {
-	display: block
 }
 div.qualines4D {
 	display: block
