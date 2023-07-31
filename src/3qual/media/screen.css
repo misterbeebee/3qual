@@ -5,13 +5,13 @@ span.qualinesFree {
 	display: inline
 }
 span.qualines4D {
-	display: none
+	display: inline
 }
 div.qualinesFree {
 	display: block
 }
 div.qualines4D {
-	display: none
+	display: block
 }
 :focus {
 	outline: 0
