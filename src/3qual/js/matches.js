@@ -211,11 +211,14 @@ var Board = {
 				Deck.dealCards(Board.emptyCells(board), 3);
 			}
 		} else {
+		Deck.dealCards(Board.emptyCells(board), 3);
+			}
+		} else {
 			Game.incrementCorrectDealMore();
 			Deck.dealCards(Board.emptyCells(board), 3);
-		}
-	},
-	getBoard: function(boardId) {
+			Game.incrementCorrectDealMore();
+			Deck.dealCards(Board.emptyCells(board), 3);
+        getBoard: function(boardId) {
 		return $("#" + boardId);
 	},
 	moveCard: function(from, to) {
