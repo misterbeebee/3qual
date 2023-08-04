@@ -1438,6 +1438,7 @@ function setKidsSettings() {
 }
 
 function setupMainPage() {
+  togglePreferencesFromMain(theBoard);
   Board.drawBoard(theBoard);
   Game.makeEndGameButton();
   $("#hint").get(0).addEventListener("click", function() {
