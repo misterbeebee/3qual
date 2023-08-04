@@ -98,7 +98,7 @@ function toggleMainFromHelp() {
 
 function togglePreferencesFromHelp() {
   togglePages(["helpText", "preferences"]);
-  bounce("#newGame");
+  flicker("#newGame");
 }
 
 function toggleHelpFromPreferences() {
@@ -107,7 +107,7 @@ function toggleHelpFromPreferences() {
 
 function togglePreferencesFromMain() {
   togglePages(["main", "preferences"]);
-  bounce("#newGame");
+  flicker("#newGame");
 }
 
 function toggleMainFromPreferences() {
