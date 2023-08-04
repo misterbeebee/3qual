@@ -16,21 +16,23 @@ function reOrientDisplayRight() {
 iPhone.orientChange(reOrientDisplayUp, reOrientDisplayLeft, reOrientDisplayRight);
 var DEBUG_RULES_OK = false;
 if (DEBUG_RULES_OK) {
-  var DEBUG_ALL_SETS_VALID = true;
+  var DEBUG_ALL_SETS_VALID = false;
   var DEBUG_NO_SETS_VALID = false;
   var DEBUG_TEST_DECK = false;
   var DEBUG_KEEP_SORTED_DECK = false;
   var DEBUG_ENABLE_DEVELOPER_CONSOLE = true;
-  var DEBUG_MAX_DECK_SIZE = 99999;
+  var DEBUG_MAX_DECK_SIZE = 7;
   var DEBUG_ALL_CARDS_ROWS = 9;
   var DEBUG_ALL_CARDS_COLS = 9;
 } else {
-  DEBUG_ALL_SETS_VALID = false;
-  DEBUG_NO_SETS_VALID = false;
-  DEBUG_TEST_DECK = false;
-  DEBUG_KEEP_SORTED_DECK = false;
-  DEBUG_ENABLE_DEVELOPER_CONSOLE = false;
-  DEBUG_MAX_DECK_SIZE = 9999999;
+  var DEBUG_ALL_SETS_VALID = false;
+  var DEBUG_NO_SETS_VALID = false;
+  var DEBUG_TEST_DECK = false;
+  var DEBUG_KEEP_SORTED_DECK = false;
+  var DEBUG_ENABLE_DEVELOPER_CONSOLE = false;
+  var DEBUG_MAX_DECK_SIZE = 9999;
+  var DEBUG_ALL_CARDS_ROWS = 9;
+  var DEBUG_ALL_CARDS_COLS = 9;
 }
 var RULES_ALLOW_COLORS = true;
 var RULES_ALLOW_FILL = true;
@@ -292,12 +294,14 @@ var Board = {
     }
     for (var i1 = 0; i1 < n; i1++) {
       var c1 = cards[i1];
-      for (var i2 = 0; i2 < n; i2++) {
+      for (var i2 = i1+1; i2 < n; i2++) {
         var c2 = cards[i2];
-        for (var i3 = 0; i3 < n; i3++) {
+        for (var i3 = i2+1; i3 < n; i3++) {
           var c3 = cards[i3];
           if (Card.isValidSet([c1, c2, c3])) {
-            console.log("Valid set: " + c1.signature + ", " + c2.signature + ", " + c3.signature);
+            console.log("Valid set: "
+              + "Cards: " + "; " + i1 + "," + i2 + "," + i3 + " "
+              + "Sigs: " + c1.signature + ", " + c2.signature + ", " + c3.signature);
             return [c1, c2, c3];
           } else {}
         }
@@ -798,8 +802,13 @@ var Seed = {
     var seed = "";
     var base = Seed.base;
     var size = Deck.deckSize;
-    loop(size / 3)(function(i) {
-      var triplet = (deck.deck[3 * i + 2].cardId * Deck.deckSize + deck.deck[3 * i + 1].cardId) * Deck.deckSize + deck.deck[3 * i].cardId;
+    console.log("Generating seed for deck of size " +  Deck.deckSize);
+    // If debugging with odd-size deck, drop extra cards.
+    loop(Math.floor(size / 3))(function(i) {
+      // convert from base "size"
+      var triplet = (deck.deck[3 * i + 2].cardId * size 
+                   + deck.deck[3 * i + 1].cardId) * size 
+                   + deck.deck[3 * i].cardId;
       var segmentSize = Math.ceil(Math.log(Deck.deckSize * Deck.deckSize * Deck.deckSize) / Math.log(base));
       seed += sprintf("%0" + segmentSize + "s", triplet.toString(base));
     });
@@ -867,9 +876,11 @@ var Game = {
     Game.incorrectQualines = 0;
     Game.incorrectDealMore = 0;
     Game.correctDealMore = 0;
+    Game.correctDone = 0;
     Game.fastestTime = {};
     Game.solveTimes = {};
-    map(["qualine", "noqualine"])(function(eventType) {
+    Game.Event = { QUALINE: 0, NO_QUALINE: 1, DONE: 2};
+    map([Game.Event.QUALINE, Game.Event.NO_QUALINE, Game.Event.DONE])(function(eventType) {
       Game.fastestTime[eventType] = Infinity;
       Game.solveTimes[eventType] = [];
     });
@@ -945,8 +956,13 @@ var Game = {
     Game.updateScoreDisplay();
   },
   incrementCorrectDealMore: function() {
-    Game.recordSolutionEvent("noqualine");
+    Game.recordSolutionEvent(Game.Event.NO_QUALINE);
     Game.correctDealMore++;
+    Game.updateScoreDisplay();
+  },
+  incrementCorrectDone: function() {
+    Game.recordSolutionEvent(Game.Event.DONE);
+    Game.correctDone++;
     Game.updateScoreDisplay();
   },
   flashCards: function(cards, color, time, callback) {
@@ -1013,7 +1029,7 @@ var Game = {
   recordMatchedSet: function() {
     Deck.setsMatched++;
     Deck.updateSetCounter();
-    Game.recordSolutionEvent("qualine");
+    Game.recordSolutionEvent(Game.Event.QUALINE);
     Game.checkEndGame(false);
   },
   checkEndGame: function(userClicked) {
@@ -1033,7 +1049,8 @@ var Game = {
     if (gameOver) {
       if (userClicked || Rules.autoEndGame() || (Board.nonEmptyCells(theBoard).length === 0)) {
         if (userClicked) {
-          Game.incrementCorrectDealMore();
+          // Don't count end of game as DealMore. It messes up timing stats.
+          // Game.incrementCorrectDealMore();
         }
         Game.endGame(true);
       }
@@ -1053,13 +1070,15 @@ var Game = {
     var sumCountPerMinute = function(array) {
       return sum(map(array)(countPerMinute));
     };
-    var qualines = Game.solveTimes.qualine.length;
-    var qpoints = sumCountPerMinute(Game.solveTimes.qualine || []);
-    var noqualines = Game.solveTimes.noqualine.length;
-    var noqpoints = sumCountPerMinute(Game.solveTimes.noqualine || []);
+    var qualines = Game.solveTimes[Game.Event.QUALINE].length;
+    var noqualines = Game.solveTimes[Game.Event.NO_QUALINE].length;
+    var done = Game.solveTimes[Game.Event.DONE].length;
+    var qpoints = sumCountPerMinute(Game.solveTimes[Game.Event.QUALINE] || []);
+    var noqpoints = sumCountPerMinute(Game.solveTimes[Game.Event.NO_QUALINE] || []);
+    var donepoints = sumCountPerMinute(Game.solveTimes[Game.Event.DONE] || []);
     var bonuses = (gameCompleted ? 1 : 0) + (gameCompleted && Game.flawless() ? 1 : 0);
     var penalties = Game.hints + Game.incorrectDealMore + Game.incorrectQualines + Game.incorrectFinished;
-    var score = (10 * ((qualines + qpoints) + (noqualines + noqpoints) + 10 * bonuses - 5 * penalties)) | 0;
+    var score = (10 * ((qualines + qpoints) + (noqualines + noqpoints + donepoints) + 10 * bonuses - 5 * penalties)) | 0;
     return score;
   },
   flawless: function() {
@@ -1102,16 +1121,16 @@ var Game = {
         append(msg, "<span class='mistake'>" + label + ": " + count + "</span>");
       }
     })
-    var qualine = Game.solveTimes.qualine;
+    var qualine = Game.solveTimes[Game.Event.QUALINE];
     if (qualine.length > 0) {
       append(msg, "Matched sets found: " + qualine.length);
       append(msg, "&nbsp;Average time: " + sprintfTime(average(qualine)));
-      append(msg, "&nbsp;Fastest: " + sprintfTime(Game.fastestTime.qualine));
+      append(msg, "&nbsp;Fastest: " + sprintfTime(Game.fastestTime[Game.Event.QUALINE]));
     }
-    var noqualine = Game.solveTimes.noqualine;
+    var noqualine = Game.solveTimes[Game.Event.NO_QUALINE];
     if (noqualine.length > 0) {
       append(msg, "Dead-ends found: " + noqualine.length);
-      append(msg, "&nbsp;Fastest find: " + sprintfTime(Game.fastestTime.noqualine));
+      append(msg, "&nbsp;Fastest find: " + sprintfTime(Game.fastestTime[Game.Event.NO_QUALINE]));
     }
     console.log(msg);
     Game.statsString = msg.join("<br/>");
@@ -1136,7 +1155,14 @@ var Game = {
       var score = Game.score(gameCompleted);
       var scoreNote = "I got " + score;
       var br = "\r\n";
-      Game.emailBody = (br + br + br + "I just finished a game of 3qual." + br + "Here's what I scored:" + br + br + $("#statsHeader").html() + br + statsString + br + br + "Use this seed code to play the same deck I did: " + Seed.toSeed(Deck) + br + br + "Play 3qual online at http://pascalcula.com/3qual and tell me what you score!" + br + br + "Play on Android: https://market.android.com/search?q=pascalcula&so=1&c=apps" + br + br + br + br).replace(/<br\/>/g, br).replace(/&nbsp;/g, " ");
+      Game.emailBody = ((br + br + br + "I just finished a game of 3qual." + br + "Here's what I scored:"
+        + br + br + $("#statsHeader").html() + br + statsString + br + br
+        + "Use this seed code to play the same deck I did: " + Seed.toSeed(Deck) + br + br
+        + "Play 3qual online at http://pascalcula.com/3qual and tell me what you score!" + br + br
+        + "Play on Android: https://market.android.com/search?q=pascalcula&so=1&c=apps" + br + br + br + br)
+        .replace(/<br\/?>/g, br) // fix newline
+        .replace(/<[^>]*>/g, '')  // remove tags
+        .replace(/&nbsp;/g, " "));
       Game.emailSubject = "Can you top my 3qual score? " + scoreNote;
       toggleStatsFromMain();
       window.setTimeout(Game.makeShowStatsButton, 500);

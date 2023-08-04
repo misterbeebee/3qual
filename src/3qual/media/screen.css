@@ -184,10 +184,6 @@ div.bottomLeftButtonBar {
 span.mistake {
 	color: brown;
 }
-span.versionSpan {
-	visibility: hidden;
-}
-
 button.playNow {
   background-color: yellow;
   font-size: 30pt;
