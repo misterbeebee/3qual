@@ -48,6 +48,8 @@ var UIConfig = {
 	MATCHED_SET_COLOR: "green",
 	CARD_DEAL_DELAY: 150,
 	SET_CLEAR_REDEAL_DELAY: 500,
+	// Delay before a new card can be touched -- prevents lingering touch from previous card in same spot.
+	NEW_CARD_TOUCH_DELAY: 100,
 	STANDARD_NOTIFICATION_TIMEOUT: 2000,
 	INCORRECT_SELECTION_FLASH_TIME: 500,
 	CORRECT_SELECTION_CLEAR_DELAY: 500,
@@ -168,6 +170,20 @@ function notifyTop(msg, timeout) {
 function notify(msg, timeout) {
 	notifyCore("notification", msg, timeout);
 }
+
+			
+function cardTouched() {
+	  		this.touched = true;
+	  		Card.clicked(this);
+	  	  }
+function cardClicked() {
+			  if (!this.touched) {
+				  Card.clicked(this);
+			  } else {
+			  	this.touched = false;
+			  }
+		  }
+
 var Board = {
 	standardRows: function() {
 		return DEBUG_TEST_DECK ? DEBUG_ALL_CARDS_ROWS : Deck.quales;
@@ -191,21 +207,12 @@ var Board = {
 			if (Rules.onlyDealMoreWhenNecessary()) {
 				notify("Cannot add cards now. Find a matching set.");
 				return;
+			} else {
+				Deck.dealCards(Board.emptyCells(board), 3);
 			}
 		} else {
 			Game.incrementCorrectDealMore();
-		}
-		// Try to deal.
-		if (Board.emptyCells(theBoard).length <= 0) {
-		  	console.log("Board is full. Can't deal");
-			var validSet = Board.getValidSet(board);
-			if (!defined(validSet)) {
-				notify("Oops! Need more cards, but there is no room!<br>Click 'End' button.");
-				flash("#endGame");			
-			}
-		} else {	
-			console.log("Board has room. Deal.");
-			Deck.dealCards(Board.emptyCells(board), 3);		
+			Deck.dealCards(Board.emptyCells(board), 3);
 		}
 	},
 	getBoard: function(boardId) {
@@ -373,18 +380,7 @@ var Card = {
 			faceSpec[quale] = ((card.cardId / Math.pow(QUALE_VALS, quale)) | 0) % QUALE_VALS;
 			card.faceSpec = faceSpec;
 		});
-		card.signature = Card.computeSignature(card);
-		card.addEventListener("touchstart", function() {
-			card.touched = true;
-			Card.clicked(card);
-		}, true);
-		card.addEventListener("click", function() {
-			if (!card.touched) {
-				Card.clicked(card);
-			} else {
-				card.touched = false;
-			}
-		}, true);
+		card.signature = Card.computeSignature(card);    
 		card.selected = false;
 		card.className = "card";
 		$(card).css("margin", "0px 0px 0px 0px");
@@ -577,12 +573,8 @@ function disableElement(id, disabledVal) {
 }
 
 function updateDealMoreButton() {
-	if (Deck.isBusy) {
+	if (Deck.isBusy || Board.emptyCells(theBoard).length <= 0) {
 		disableElement("dealMore", true);
-	}
-	else if (Board.emptyCells(theBoard).length <= 0) {
-		console.log("Board is full.");
-		disableElement("dealMore", false);
 	} else {
 		disableElement("dealMore", false);
 	}
@@ -709,6 +701,16 @@ var Deck = {
 		}
 		var card = Deck.deck[Deck.deckPlace];
 		card.setAttribute("onBoard", true);
+		
+		// Wait a moment for previous touch on old card to (maybe) finish,
+		// before listening for touch on new card.
+		card.removeEventListener("touchstart", cardTouched);
+		card.removeEventListener("click", cardClicked);
+		window.setTimeout(function() {
+		  card.addEventListener("touchstart", cardTouched, true);
+		  card.addEventListener("click", cardClicked, true);	
+		}, UIConfig.NEW_CARD_TOUCH_DELAY);
+		
 		$(cell).append(card);
 		if (canHighlightNewCard) {
 			Card.updateStyleForGentleHint(card);
@@ -717,6 +719,7 @@ var Deck = {
 		Deck.updateDeckCounter();
 		return true;
 	},
+  
 	dealCards: function(cells, numCards, callback) {
 		console.log("Dealing " + numCards + " into " + cells.length + " cells");
 		if (cells.length <= numCards) {
@@ -864,7 +867,6 @@ var Game = {
 		if (Rules.useSeedCode()) {
 			$("#seedLabel").html("Paste seed code here <br/>(if you have one):<br/>");
 			$("#seedForm").show();
-			Deck.makeBusy(true);
 		} else {
 			Game.startGame();
 		}
@@ -919,11 +921,11 @@ var Game = {
 		Game.updateScoreDisplay();
 	},
 	incrementIncorrectQualines: function() {
-		Game.incorrectDealMore++;
+		Game.incorrectQualines++;
 		Game.updateScoreDisplay();
 	},
 	incrementIncorrectFinished: function() {
-		Game.incorrectDealMore++;
+		Game.incorrectFinished++;
 		Game.updateScoreDisplay();
 	},
 	incrementIncorrectDealMore: function() {
@@ -1018,15 +1020,15 @@ var Game = {
 		}
 		if (gameOver) {
 			if (userClicked || Rules.autoEndGame() || (Board.nonEmptyCells(theBoard).length === 0)) {
-				if (userClicked && (Deck.cardsLeft() > 0)) {
-					Game.recordSolutionEvent("no-qualine");
-				}
+				if (userClicked) {
+					Game.incrementCorrectDealMore();
+			        }
 				Game.endGame(true);
 			}
 		} else {
 			if (userClicked) {
 				notify("Not finished yet!");
-				Game.incrementIncorrectFinished;
+				Game.incrementIncorrectFinished();
 			}
 		}
 	},
@@ -1076,15 +1078,18 @@ var Game = {
 		if (Game.hints > 0) {
 			append(msg, "Hints: " + Game.hints);
 		}
-		if (Game.incorrectQualines > 0) {
-			append(msg, "False-Sets: " + Game.incorrectQualines);
-		}
-		if (Game.incorrectFinished > 0) {
-			append(msg, "False-Finishes: " + Game.incorrectFinished);
-		}
-		if (Game.incorrectDealMore > 0) {
-			append(msg, "Extra Deals: " + Game.incorrectDealMore);
-		}
+		var mistakes = [
+			["False Matches", Game.incorrectQualines],
+			["False Finishes", Game.incorrectFinished],
+      ["Extra Deals", Game.incorrectDealMore]
+		]
+		mistakes.forEach(function(mistake){
+		  var label = mistake[0];
+		  var count = mistake[1];
+		  if (count > 0) {
+		  	append(msg, "<span class='mistake'>" + label + ": " + count + "</span>");
+		  }
+		})
 		var qualine = Game.solveTimes.qualine;
 		if (qualine.length > 0) {
 			append(msg, "Matched sets found: " + qualine.length);
@@ -1167,18 +1172,6 @@ var Game = {
 	}
 };
 
-function flash(elem) {
-	$(elem).animate({
-		opacity: 0.25,
-	}, 200).animate({
-		opacity: 1,
-	}, 200).animate({
-		opacity: 0.25,
-	}, 200).animate({
-		opacity: 1,
-	}, 200);
-}
-
 function showHint(board) {
 	Game.incrementHints();
 	var validSet = Board.getValidSet(board);
@@ -1190,9 +1183,25 @@ function showHint(board) {
 		});
 	} else {
 		if (Deck.cardsLeft() > 0) {
-			flash("#dealMore");
+			$("#dealMore").animate({
+				opacity: 0.25,
+			}, 200).animate({
+				opacity: 1,
+			}, 200).animate({
+				opacity: 0.25,
+			}, 200).animate({
+				opacity: 1,
+			}, 200);
 		} else {
-			flash("#dealMore"); // aka "Done!";
+			$("#dealMore").animate({
+				opacity: 0.25,
+			}, 200).animate({
+				opacity: 1,
+			}, 200).animate({
+				opacity: 0.25,
+			}, 200).animate({
+				opacity: 1,
+			}, 200);
 		}
 	}
 }
