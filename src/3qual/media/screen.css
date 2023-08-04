@@ -196,6 +196,6 @@ button.playNow {
   display : none;
   visibility : hidden;
 }
-.newGame {
+.startNewGame {
   color: yellow;
 }
