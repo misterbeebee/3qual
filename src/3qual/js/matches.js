@@ -98,6 +98,7 @@ function toggleMainFromHelp() {
 
 function togglePreferencesFromHelp() {
   togglePages(["helpText", "preferences"]);
+  bounce("#newGame");
 }
 
 function toggleHelpFromPreferences() {
@@ -106,6 +107,7 @@ function toggleHelpFromPreferences() {
 
 function togglePreferencesFromMain() {
   togglePages(["main", "preferences"]);
+  bounce("#newGame");
 }
 
 function toggleMainFromPreferences() {
@@ -889,7 +891,7 @@ var Game = {
     if (Rules.useSeedCode()) {
       $("#seedLabel").html("Paste seed code here <br/>(if you have one):<br/>");
       $("#seedForm").show();
-			Deck.makeBusy(true);      
+      Deck.makeBusy(true);      
     } else {
       Game.startGame();
     }
@@ -1210,6 +1212,19 @@ var Game = {
   }
 };
 
+function flicker(selector) {
+      $(selector).animate({
+        opacity: 0.25,
+      }, 200).animate({
+        opacity: 1,
+      }, 200).animate({
+        opacity: 0.25,
+      }, 200).animate({
+        opacity: 1,
+      }, 200);
+}
+
+
 function showHint(board) {
   Game.incrementHints();
   var validSet = Board.getValidSet(board);
@@ -1221,25 +1236,7 @@ function showHint(board) {
     });
   } else {
     if (Deck.cardsLeft() > 0) {
-      $("#dealMore").animate({
-        opacity: 0.25,
-      }, 200).animate({
-        opacity: 1,
-      }, 200).animate({
-        opacity: 0.25,
-      }, 200).animate({
-        opacity: 1,
-      }, 200);
-    } else {
-      $("#dealMore").animate({
-        opacity: 0.25,
-      }, 200).animate({
-        opacity: 1,
-      }, 200).animate({
-        opacity: 0.25,
-      }, 200).animate({
-        opacity: 1,
-      }, 200);
+      flicker("#dealMore");
     }
   }
 }
@@ -1492,5 +1489,4 @@ function main() {
   theBoard = Board.getBoard("board");
   setupMainPage();
   setDefaultSettings();
-  Game.resetGame(theBoard);
 }
