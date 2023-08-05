@@ -216,6 +216,7 @@ var Board = {
         Deck.dealCards(Board.emptyCells(board), 3);
       }
     } else {
+      Game.incrementCorrectDealMore();
       // Try to deal.
       if (Board.emptyCells(theBoard).length <= 0) {
         console.log("Board is full. Can't deal");
