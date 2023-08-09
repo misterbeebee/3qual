@@ -1139,8 +1139,8 @@ var Game = {
              + "&nbsp;&nbsp;&nbsp;&nbsp; Slowest: " + sprintfTime(Game.slowestTime[Game.Event.QUALINE]));
     }
     var no_qualine = Game.solveTimes[Game.Event.NO_QUALINE];
-    if (NO_QUALINE.length > 0) {
-      append(msg, "Dead-ends found: " + NO_QUALINE.length);
+    if (no_qualine.length > 0) {
+      append(msg, "Dead-ends found: " + no_qualine.length);
       append(msg, "&nbsp;Fastest: " + sprintfTime(Game.fastestTime[Game.Event.NO_QUALINE])
             + "&nbsp;&nbsp;&nbsp;&nbsp; Slowest: " + sprintfTime(Game.slowestTime[Game.Event.NO_QUALINE]));
     }
