@@ -881,9 +881,11 @@ var Game = {
     Game.correctDealMore = 0;
     Game.correctDone = 0;
     Game.fastestTime = {};
+    Game.slowestTime = {};
     Game.solveTimes = {};
     Game.Event = { QUALINE: 0, NO_QUALINE: 1, DONE: 2};
     map([Game.Event.QUALINE, Game.Event.NO_QUALINE, Game.Event.DONE])(function(eventType) {
+      Game.slowestTime[eventType] = Infinity;
       Game.fastestTime[eventType] = Infinity;
       Game.solveTimes[eventType] = [];
     });
@@ -1025,8 +1027,13 @@ var Game = {
     Game.lastSolutionEventTime = totalTime;
     append(Game.solveTimes[eventType], solveTime);
     var fastest = Game.fastestTime[eventType];
+    var slowest = Game.slowestTime[eventType];
     Game.fastestTime[eventType] = (isNaN(fastest) || isNull(fastest) || (solveTime < fastest)) ? solveTime : fastest;
-    console.log("Total: " + sprintfTime(totalTime) + "; Last: " + sprintfTime(solveTime) + "; Fastest: " + sprintfTime(Game.fastestTime[eventType]));
+    Game.slowestTime[eventType] = (isNaN(slowest) || isNull(slowest) || (solveTime > slowest)) ? solveTime : slowest;
+    console.log("Total: " + sprintfTime(totalTime)
+                + "; Last: " + sprintfTime(solveTime)
+                + "; Fastest: " + sprintfTime(Game.fastestTime[eventType])
+                + "; " Slowest: " + sprintfTime(Game.slowestTime[eventType]));
     Game.updateScoreDisplay(totalTime, solveTime);
   },
   recordMatchedSet: function() {
@@ -1128,12 +1135,14 @@ var Game = {
     if (qualine.length > 0) {
       append(msg, "Matched sets found: " + qualine.length);
       append(msg, "&nbsp;Average time: " + sprintfTime(average(qualine)));
-      append(msg, "&nbsp;Fastest: " + sprintfTime(Game.fastestTime[Game.Event.QUALINE]));
+      append(msg, "&nbsp;Fastest: " + sprintfTime(Game.fastestTime[Game.Event.QUALINE])
+             + "&nbsp;&nbsp;&nbsp;&nbsp; Slowest: " + sprintfTime(Game.slowestTime[Game.Event.QUALINE]));
     }
-    var noqualine = Game.solveTimes[Game.Event.NO_QUALINE];
-    if (noqualine.length > 0) {
-      append(msg, "Dead-ends found: " + noqualine.length);
-      append(msg, "&nbsp;Fastest find: " + sprintfTime(Game.fastestTime[Game.Event.NO_QUALINE]));
+    var no_qualine = Game.solveTimes[Game.Event.NO_QUALINE];
+    if (NO_QUALINE.length > 0) {
+      append(msg, "Dead-ends found: " + NO_QUALINE.length);
+      append(msg, "&nbsp;Fastest: " + sprintfTime(Game.fastestTime[Game.Event.NO_QUALINE])
+            + "&nbsp;&nbsp;&nbsp;&nbsp; Slowest: " + sprintfTime(Game.slowestTime[Game.Event.NO_QUALINE]));
     }
     console.log(msg);
     Game.statsString = msg.join("<br/>");
