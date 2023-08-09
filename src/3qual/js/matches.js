@@ -885,7 +885,7 @@ var Game = {
     Game.solveTimes = {};
     Game.Event = { QUALINE: 0, NO_QUALINE: 1, DONE: 2};
     map([Game.Event.QUALINE, Game.Event.NO_QUALINE, Game.Event.DONE])(function(eventType) {
-      Game.slowestTime[eventType] = Infinity;
+      Game.slowestTime[eventType] = -Infinity;
       Game.fastestTime[eventType] = Infinity;
       Game.solveTimes[eventType] = [];
     });
