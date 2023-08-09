@@ -1033,7 +1033,7 @@ var Game = {
     console.log("Total: " + sprintfTime(totalTime)
                 + "; Last: " + sprintfTime(solveTime)
                 + "; Fastest: " + sprintfTime(Game.fastestTime[eventType])
-                + "; " Slowest: " + sprintfTime(Game.slowestTime[eventType]));
+                + "; Slowest: " + sprintfTime(Game.slowestTime[eventType]));
     Game.updateScoreDisplay(totalTime, solveTime);
   },
   recordMatchedSet: function() {
